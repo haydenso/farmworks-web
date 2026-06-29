@@ -40,7 +40,7 @@ node fetch-metrics.js
 
 ## How It Works
 
-1. **`trucks.csv`** — defines your trucks (id, plate number, boda assignment, status)
+1. **`trucks.csv`** — defines your trucks (id, plate number, status)
 2. **`metrics.csv`** — stores daily distance data for each truck
 3. **`index.html`** — the dashboard that reads both CSVs and displays data with day/week views
 
@@ -170,14 +170,13 @@ Appended metrics to metrics.csv
 ### trucks.csv
 
 ```csv
-truckId,plateNumber,externalId,bodaName,status
-Canter-KCG-149N,Canter KCG 149N,Canter KCG 149N,Nairobi East Boda,active
+truckId,plateNumber,externalId,status
+Canter-KCG-149N,Canter KCG 149N,Canter KCG 149N,active
 ```
 
 - `truckId` — unique ID (URL-safe, no spaces)
 - `plateNumber` — display name
 - `externalId` — name used by GPS API (may include spaces)
-- `bodaName` — boda assignment
 - `status` — active/inactive
 
 ### metrics.csv

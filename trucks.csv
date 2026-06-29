@@ -1,15 +1,15 @@
-truckId,plateNumber,externalId,bodaName,status
-Canter-KCG-149N,Canter KCG 149N,Canter KCG 149N,Nairobi East Boda,active
-FH-KBP-764X,FH KBP 764X,FH KBP 764X,Thika Boda,active
-FRR-KDA-021R,FRR KDA 021R,FRR KDA 021R,Machakos Boda,active
-FRR-KDL-166P,FRR KDL 166P,FRR KDL 166P,Nairobi East Boda,active
-FUSO-KCU-662N,FUSO KCU 662N,FUSO KCU 662N,Thika Boda,active
-Fuso-KDR-832J,Fuso KDR 832J,Fuso KDR 832J,Machakos Boda,active
-Hilux-KCS-029Q,Hilux KCS 029Q,Hilux KCS 029Q,Nairobi East Boda,active
-Hino-KDJ-423S,Hino KDJ 423S,Hino KDJ 423S,Thika Boda,active
-Isuzu-KDW-498R,Isuzu KDW 498R,Isuzu KDW 498R,Machakos Boda,active
-NKR-KDA-089J,NKR KDA 089J,NKR KDA 089J,Nairobi East Boda,active
-Probox-KDG-749M,Probox KDG 749M,Probox KDG 749M,Thika Boda,active
-Probox-KDL-730Y,Probox KDL 730Y,Probox KDL 730Y,Machakos Boda,active
-Tata-KDE-169F,Tata KDE 169F,Tata KDE 169F,Nairobi East Boda,active
-Tvs-KMGL-282K,Tvs KMGL 282K,Tvs KMGL 282K,Thika Boda,active
+truckId,plateNumber,externalId,status
+Canter-KCG-149N,Canter KCG 149N,Canter KCG 149N,active
+FH-KBP-764X,FH KBP 764X,FH KBP 764X,active
+FRR-KDA-021R,FRR KDA 021R,FRR KDA 021R,active
+FRR-KDL-166P,FRR KDL 166P,FRR KDL 166P,active
+FUSO-KCU-662N,FUSO KCU 662N,FUSO KCU 662N,active
+Fuso-KDR-832J,Fuso KDR 832J,Fuso KDR 832J,active
+Hilux-KCS-029Q,Hilux KCS 029Q,Hilux KCS 029Q,active
+Hino-KDJ-423S,Hino KDJ 423S,Hino KDJ 423S,active
+Isuzu-KDW-498R,Isuzu KDW 498R,Isuzu KDW 498R,active
+NKR-KDA-089J,NKR KDA 089J,NKR KDA 089J,active
+Probox-KDG-749M,Probox KDG 749M,Probox KDG 749M,active
+Probox-KDL-730Y,Probox KDL 730Y,Probox KDL 730Y,active
+Tata-KDE-169F,Tata KDE 169F,Tata KDE 169F,active
+Tvs-KMGL-282K,Tvs KMGL 282K,Tvs KMGL 282K,active

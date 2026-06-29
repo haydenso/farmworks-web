@@ -89,20 +89,19 @@ This skips dates/trucks already in `metrics.csv`.
 
 | File | Format | Description |
 |------|--------|-------------|
-| `trucks.csv` | `truckId,plateNumber,externalId,bodaName,status` | Vehicle definitions |
+| `trucks.csv` | `truckId,plateNumber,externalId,status` | Vehicle definitions |
 | `metrics.csv` | `date,truck_id,distance_km` | Daily distances |
 
 ### trucks.csv
 
 ```csv
-truckId,plateNumber,externalId,bodaName,status
-Canter-KCG-149N,Canter KCG 149N,Canter KCG 149N,Nairobi East Boda,active
+truckId,plateNumber,externalId,status
+Canter-KCG-149N,Canter KCG 149N,Canter KCG 149N,active
 ```
 
 - `truckId` — unique ID (URL-safe, no spaces)
 - `plateNumber` — display name
 - `externalId` — name used by GPS API (may include spaces)
-- `bodaName` — boda assignment
 - `status` — active/inactive
 
 ### metrics.csv
