@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruckGPS Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --panel: #ffffff;
+      --ink: #13202c;
+      --muted: #5f7183;
+      --accent: #0a7f72;
+      --line: #d9e2eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top right, #e7f7f4, transparent 36%), var(--bg);
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(12, 31, 52, 0.07);
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+      border-top: 1px solid var(--line);
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+
+    .table th {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: left;
+    }
+
+    .table td:last-child,
+    .table th:last-child {
+      text-align: right;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .button {
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .button.active {
+      background: var(--panel);
+      color: var(--ink);
+      border-color: #b8c7d5;
+    }
+
+    input[type="date"] {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .loading, .error {
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .error { color: #b91c1c; }
+
+    .summary {
+      margin-top: 12px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .summary strong {
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <div class="container stack">
+    <section class="panel" style="padding: 24px;">
+      <p style="margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--muted);">
+        Farmworks Fleet
+      </p>
+      <h1 style="margin-top: 6px; margin-bottom: 10px;">Distance Dashboard</h1>
+      <p style="margin: 0; color: var(--muted);">
+        Data loaded from CSV files. Update trucks.csv and metrics.csv to refresh.
+      </p>
+    </section>
+
+    <section class="panel" style="padding: 18px;">
+      <div class="controls" style="justify-content: space-between;">
+        <div class="controls">
+          <label for="date" style="color: var(--muted); font-size: 14px;">Date</label>
+          <input id="date" type="date" />
+          <button class="button active" id="btn-day" onclick="setMode('day')">Day</button>
+          <button class="button" id="btn-week" onclick="setMode('week')">Week</button>
+        </div>
+        <span id="label" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);"></span>
+      </div>
+
+      <div id="loading" class="loading" style="display: none;">Loading...</div>
+      <div id="error" class="error" style="display: none;"></div>
+
+      <div id="content">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Truck</th>
+              <th>Boda</th>
+              <th>Status</th>
+              <th>Distance (km)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="4" style="text-align: center; color: var(--muted);">No records for this period.</td></tr>
+          </tbody>
+        </table>
+        <p class="summary" id="summary"></p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ========== CSV PARSING ==========
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      if (lines.length < 2) return [];
+      const headers = lines[0].split(',').map(h => h.trim());
+      return lines.slice(1).map(line => {
+        // Handle quoted values properly
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        values.push(current.trim());
+        
+        const row = {};
+        headers.forEach((h, i) => {
+          row[h] = values[i] || '';
+        });
+        return row;
+      });
+    }
+
+    // ========== DATE UTILS ==========
+    function todayIso() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatDate(value) {
+      const [year, month, day] = value.split('-');
+      if (!year || !month || !day) return value;
+      return `${day}-${month}-${year}`;
+    }
+
+    function weekBounds(dateIso) {
+      const date = new Date(`${dateIso}T00:00:00.000Z`);
+      const dayOfWeek = date.getUTCDay();
+      const start = new Date(date.getTime() - dayOfWeek * 24 * 60 * 60 * 1000);
+      const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+      return {
+        start: start.toISOString().slice(0, 10),
+        end: end.toISOString().slice(0, 10)
+      };
+    }
+
+    function eachDay(startIso, endIso) {
+      const days = [];
+      const start = new Date(`${startIso}T00:00:00.000Z`);
+      const end = new Date(`${endIso}T00:00:00.000Z`);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        days.push(new Date(d).toISOString().slice(0, 10));
+      }
+      return days;
+    }
+
+    // ========== STATE ==========
+    let trucks = [];
+    let metrics = [];
+    let currentMode = 'day';
+    let currentDate = todayIso();
+
+    // ========== DATA LOADING ==========
+    async function loadData() {
+      try {
+        const [trucksRes, metricsRes] = await Promise.all([
+          fetch('trucks.csv'),
+          fetch('metrics.csv')
+        ]);
+
+        if (!trucksRes.ok) throw new Error(`Failed to load trucks.csv: ${trucksRes.status}`);
+        if (!metricsRes.ok) throw new Error(`Failed to load metrics.csv: ${metricsRes.status}`);
+
+        const trucksText = await trucksRes.text();
+        const metricsText = await metricsRes.text();
+
+        trucks = parseCSV(trucksText);
+        metrics = parseCSV(metricsText).map(m => ({
+          truckId: m.truck_id || '',
+          date: m.date || '',
+          distanceKm: parseFloat(m.distance_km) || 0
+        }));
+
+        render();
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    // ========== RENDERING ==========
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error');
+      el.textContent = message;
+      el.style.display = 'block';
+    }
+
+    function hideError() {
+      document.getElementById('error').style.display = 'none';
+    }
+
+    function getMetricForDate(truckId, date) {
+      const metric = metrics.find(m => m.truckId === truckId && m.date === date);
+      return metric ? metric.distanceKm : 0;
+    }
+
+    function getWeeklyMetric(truckId, start, end) {
+      const days = eachDay(start, end);
+      let total = 0;
+      for (const day of days) {
+        total += getMetricForDate(truckId, day);
+      }
+      return total;
+    }
+
+    function render() {
+      hideError();
+
+      const tbody = document.getElementById('tbody');
+      const label = document.getElementById('label');
+      const summary = document.getElementById('summary');
+
+      let totalKm = 0;
+      let rows = [];
+
+      if (currentMode === 'day') {
+        label.textContent = formatDate(currentDate);
+        rows = trucks.map(truck => {
+          const distanceKm = getMetricForDate(truck.truckId, currentDate);
+          totalKm += distanceKm;
+          return { ...truck, distanceKm };
+        });
+      } else {
+        const { start, end } = weekBounds(currentDate);
+        label.textContent = `${formatDate(start)} to ${formatDate(end)}`;
+        rows = trucks.map(truck => {
+          const distanceKm = getWeeklyMetric(truck.truckId, start, end);
+          totalKm += distanceKm;
+          return { ...truck, distanceKm };
+        });
+      }
+
+      // Sort by plate number
+      rows.sort((a, b) => a.plateNumber.localeCompare(b.plateNumber));
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--muted);">No trucks configured.</td></tr>';
+      } else {
+        tbody.innerHTML = rows.map(row => `
+          <tr>
+            <td>${escapeHtml(row.plateNumber)}</td>
+            <td>${escapeHtml(row.bodaName || 'Unassigned')}</td>
+            <td>${escapeHtml(row.status)}</td>
+            <td>${row.distanceKm.toFixed(2)}</td>
+          </tr>
+        `).join('');
+      }
+
+      summary.innerHTML = `Fleet Total: <strong>${totalKm.toFixed(2)} km</strong>`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btn-day').classList.toggle('active', mode === 'day');
+      document.getElementById('btn-week').classList.toggle('active', mode === 'week');
+      render();
+    }
+
+    // ========== EVENT LISTENERS ==========
+    document.getElementById('date').addEventListener('change', (e) => {
+      currentDate = e.target.value;
+      render();
+    });
+
+    // ========== INIT ==========
+    document.getElementById('date').value = currentDate;
+    loadData();
+  </script>
+</body>
+</html>
